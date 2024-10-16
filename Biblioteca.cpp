@@ -9,7 +9,11 @@ struct Libros
     Libros *prox;
 };
 
-Libros* RegistrarLibro(string titulo, string autor, string isbn){
+bool esVacia(Libros *p_inicial){
+    return p_inicial == nullptr;
+}
+
+Libros *CrearLibro(string titulo, string autor, string isbn){
     Libros *libro = new Libros;
     libro->titulo = titulo;
     libro->autor = autor;
@@ -18,30 +22,30 @@ Libros* RegistrarLibro(string titulo, string autor, string isbn){
     return libro;
 }
 
-bool ListaVacia(Libros *p_inicial){
-    return p_inicial == nullptr;
+void RegistrarLibro(Libros **p_inicial, string titulo, string autor, string isbn){
+    Libros *libro = CrearLibro(titulo, autor, isbn);
+    libro->prox = *p_inicial;
+    *p_inicial = libro;
+    cout << "Libro registrado con exito!\n" << endl;
+    system("pause");
 }
 
 void MostrarLibros(Libros *p_inicial){
-    if( !ListaVacia( p_inicial ) ){
-        Libros *p_aux = p_inicial;
-        int contadorLibros = 1;
-
-        while( p_aux != nullptr ){
-            cout << endl << "---------------\n" << "Libro #" << contadorLibros << "\n---------------\n";
-            cout << "Titulo: " << p_aux->titulo << "\nAutor: " << p_aux->autor << "\nCodigo: " << p_aux->isbn << "\n--------------" << endl;
-            contadorLibros++;
-            p_aux = p_aux->prox;
-        }
+    if( esVacia(p_inicial) ){
+        cout << "\nNo hay libros registrados" << endl;
     }else{
-        cout << endl << "La biblioteca se encuentra vacia!" << endl;
-    }
-}
+        Libros *aux = p_inicial;
+        int count = 1;
 
-void InsertarLibro(Libros **p_inicial, string titulo, string autor, string isbn){
-    Libros *libro = RegistrarLibro(titulo, autor, isbn);
-    libro->prox = *p_inicial;
-    *p_inicial = libro;
+        while( aux != nullptr ){
+            cout << "\n\n-------------\n" << "   Libro #" << count << "\n-------------" << endl;
+            cout << "Titulo: " << aux->titulo << endl << "Autor: " << aux->autor << endl << "ISBN CODE: " << aux->isbn << endl << "-------------------\n";
+            count++;
+            aux = aux->prox;
+        }
+
+        system("pause");
+    }
 }
 
 string Nombre(){
@@ -50,7 +54,7 @@ string Nombre(){
 
     while( ciclo ){
         cout << "Ingrese el nombre del autor: ";
-        cin >> nombre;
+        getline(cin, nombre);
 
         if(nombre.length() >= 3 ){
             ciclo = false;
@@ -59,6 +63,8 @@ string Nombre(){
             cout << "\nEl nombre del autor ingresado, no es mayor o igual a 3 caracteres.\nIntente Nuevamente!\n";
         }
     }
+
+    return nombre.empty() ? "" : nombre;
 }
 
 string Titulo(){
@@ -67,7 +73,7 @@ string Titulo(){
 
     while( ciclo ){
         cout << "Ingrese el titulo del libro: ";
-        cin >> titulo;
+        getline(cin, titulo);
 
         if(titulo.length() >= 5 ){
             ciclo = false;
@@ -76,6 +82,8 @@ string Titulo(){
             cout << "\nEl titulo ingresado debe contener de 5 a mas caracteres.\nIntente Nuevamente!\n";
         }
     }
+
+    return titulo.empty() ? "" : titulo;
 }
 
 string CodigoISBN(){
@@ -84,7 +92,7 @@ string CodigoISBN(){
 
     while( ciclo ){
         cout << "Ingrese el codigo de identificacion del libro: ";
-        cin >> isbn;
+        getline(cin, isbn);
 
         if(isbn.length() > 4 && isbn.length() < 6){
             ciclo = false;
@@ -93,42 +101,109 @@ string CodigoISBN(){
             cout << "\nEl codigo de identificacion ingresado, tiene que ser de 5 caracteres.\nIntente Nuevamente!\n";
         }
     }
+
+    return isbn.empty() ? "" : isbn;
+}
+
+void BuscarLibroPorAutor(Libros *p_inicial, string autor){
+    if( esVacia(p_inicial) ){
+        cout << "\nNo hay libros registrados" << endl;
+        system("pause");
+    }else{
+        Libros *aux = p_inicial;
+        int count = 1;
+
+        while ( aux != nullptr ){
+            if( aux->autor == autor){
+                cout << "\n\n-------------\n" << "   Libro #" << count << "\n-------------" << endl;
+                cout << "Titulo: " << aux->titulo << endl << "Autor: " << aux->autor << endl << "ISBN CODE: " << aux->isbn << endl << "-------------------\n";
+                count++;
+            }
+
+            aux = aux->prox;
+        }
+
+        cout << "\nLibros encontrados: " << count - 1 << endl;
+
+        system("pause");
+    }
+}
+
+void EliminarLibro(Libros *p_inicial, string isbn){
+    if( esVacia(p_inicial) ){
+        cout << "\nNo hay libros registrados" << endl;
+        return;
+    }
+
+    Libros *actual = p_inicial;
+    Libros *anterior = nullptr;
+
+    while( actual != nullptr && actual->isbn != isbn ){
+        anterior = actual;
+        actual = actual->prox;
+    }
+
+    if( actual == nullptr ){
+        cout << "\nNo se encontro el libro con el ISBN: " << isbn << endl;
+        return;
+    }
+
+    if( actual == p_inicial ){
+        p_inicial = p_inicial->prox;
+    }else{
+        anterior->prox = actual->prox;
+    }
+
+    delete actual;
+    cout << "\nLibro eliminado con exito!" << endl;
+    system("pause");
 }
 
 int main(){
-    bool ciclo = true;
-    int opcion;
-    string titulo, autor, isbn;
     Libros *biblioteca = nullptr;
+    bool ciclo = true;
+    string titulo, autor, isbn;
+    int opcion;
 
     while( ciclo ){
-        cout << endl << "--------------------------" << endl << "|          MENU          |" << endl << "--------------------------" << endl;
-        cout << "| 1. Libros disponibles  |" << endl << "| 2. Registrar libro \t |" << endl << "| 3. Salir \t\t |" << endl << "--------------------------" << endl << endl << "Ingrese una opcion del menu: ";
+        cout << "-------------------\n" << "         MENU    " << "\n-------------------" << endl;
+        cout << "1. Registrar Libro" << endl << "2. Mostrar Libros" << endl << "3. Buscar libro por Autor" << endl << "4. Eliminar Libro por ISBN" <<endl << "5. Salir" << endl;
+        cout << "-------------------" << endl << endl << "Ingrese una opcion del menu: ";
         cin >> opcion;
 
-        switch (opcion){
+        switch (opcion)
+        {
             case 1:
-                MostrarLibros(biblioteca);
-            break;
-            
-            case 2:
                 titulo = Titulo();
                 autor = Nombre();
                 isbn = CodigoISBN();
+                RegistrarLibro(&biblioteca, titulo, autor, isbn);
+            break;
 
-                InsertarLibro(&biblioteca, titulo, autor, isbn);
+            case 2:
+                MostrarLibros(biblioteca);
             break;
 
             case 3:
+                autor = Nombre();
+                BuscarLibroPorAutor(biblioteca, autor);
+            break;
+
+            case 4:
+                isbn = CodigoISBN();
+                EliminarLibro(biblioteca, isbn);
+            break;
+            
+            case 5:
                 ciclo = false;
-                cout << "\nVuelva Pronto!" << endl;
+                cout << "Adios!" << endl;
             break;
             
             default:
-                cout << endl << "Opcion ingresada invalida!" << endl; 
+                cout << "Opcion no valida!\nIntente nuevamente\n\n";
             break;
         }
 
-    }
 
+    }
 }
