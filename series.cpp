@@ -1,5 +1,4 @@
 #include <iostream>
-#
 using namespace std;
 struct Episodios{
     string Titulo;
@@ -54,7 +53,7 @@ bool ListaEpisodiosVacio(Episodios *listaEpi){
     return listaEpi == nullptr;
 }
 
-void *AgregarEpisodios(Episodios **listaEpi, string titulo, int duracion, int numeroEpisodios){
+void AgregarEpisodios(Episodios **listaEpi, string titulo, int duracion, int numeroEpisodios){
     Episodios *nuevosEpisodios = CrearEpisodios(titulo, duracion, numeroEpisodios);
     nuevosEpisodios->prox = *listaEpi;
     *listaEpi = nuevosEpisodios;
@@ -93,28 +92,93 @@ Episodios *LlenarEpisodios(Episodios **listasEpisodios){
 
         AgregarEpisodios(listasEpisodios, titulo, duracion, numeroEpisodios);
     }
-
-    return *listasEpisodios;
+    
+    if(cantidad == 0){
+      cout << "Despues puede agregar episodios a sus series si asi lo desea!" << endl;
+      return nullptr;
+    }else{
+      return *listasEpisodios;
+    }
 }
 
+
+string NombreSeries(){
+  string nombre;
+  bool ciclo = true;
+  
+  while(ciclo){
+    cout << "Ingrese el nombre de la serie: ";
+    getline(cin, nombre);
+    
+    if(nombre.size() < 2){
+      cout << "El nombre de la serie no puede ser menor a 2 caracteres" << endl << "Intente nuevamente: " << endl;
+    }else{
+      ciclo = false;
+      return nombre;
+    }
+  }
+}
+
+string GeneroSeries(){
+  string genero;
+  bool ciclo = true;
+  
+  while(ciclo){
+    cout << "Ingrese el nombre de la serie: ";
+    getline(cin, genero);
+    
+    if(genero.size() < 2){
+      cout << "El genero de la serie no puede ser menor a 2 caracteres" << endl << "Intente nuevamente: " << endl;
+    }else{
+      ciclo = false;
+      return genero;
+    }
+  }
+}
+
+int NivelAudiencia(){
+  int audiencia;
+  bool ciclo = true;
+  
+  while(ciclo){
+    cout << "Ingresa el numero de audiencia de la serie: ";
+    cin >> audiencia;
+    
+    if(audiencia < 0){
+      cout << "El numero de la audiencia no puede ser un numero negativo!" << endl << "Intente nuevamente: " << endl;
+    }else{
+      ciclo = false;
+      return audiencia;
+    }
+  }
+}
 
 void LlenarListaSeries(Series **listaSeries, Episodios **listaEpisodios){
     // Variables de las series
     string nombre, genero;
-    int nivelAudi;
-
-    cout << "Ingrese la audiencia que tiene la serie: ";
-    cin >> nivelAudi;
-
-    cout << "Ingrese el nombre de la serie: ";
-    getline(cin, nombre);
-
-    cout << "Ingrese el genero de la serie: ";
-    getline(cin, genero);
-
-    Episodios *Episodios = LlenarEpisodios(listaEpisodios);
-
-    AgregarSeries(listaSeries, nombre, genero, nivelAudi, Episodios);
+    int nivelAudi, opcion;
+    Episodios *episodios = nullptr;
+    bool agregarEpisodio = true;
+    
+    nombre = NombreSeries();
+    genero = GeneroSeries();
+    nivelAudi = NivelAudiencia();
+    
+    cout << "¿Deseas agregar episodios a tu serie?\n1) Si\n2) No\nIngrese una opcion: ";
+    cin >> opcion;
+    
+    if(opcion != 1){
+      
+    }
+    
+    
+    if(!agregarEpisodio){
+      cout << "Puedes ingresarles episodios despues a las series!" << endl;
+    }else{
+      episodios = LlenarEpisodios(listaEspisodios);
+    }
+    
+    AgregarSeries(listaSeries, nombre, genero, nivelAudi, episodios);
     cout << "Serie agregada con exito" << endl << endl;
 }
 
