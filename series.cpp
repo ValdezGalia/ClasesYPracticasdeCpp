@@ -72,23 +72,66 @@ void MenuPrincipal(){
     cout << green << "MENU" << reset << endl;
     cout << green << "1." << reset << " Agregar Serie" << endl;
     cout << green << "2." << reset << " Eliminar Serie con todos sus episodios" << endl;
-    cout << green << "4." << reset << " Eliminar Episodio de una serie" << endl;
-    cout << green << "11." << reset << " Mostrar Series" << endl;
-    cout << green << "10." << reset << " Salir" << endl;
     // cout << "3. Agregar Episodio a una serie" << endl;
-    // cout << "5. Lista de Series y episodios" << endl;
-    // cout << "6. Buscar una Serie por nombre" << endl;
+    cout << green << "4." << reset << " Eliminar Episodio de una serie" << endl;
+    cout << green << "5." << reset << " Lista de Series y episodios" << endl;
+    cout << green << "6." << reset << " Buscar una Serie por nombre" << endl;
     // cout << "7. Ordenar las series de forma alfabetica" << endl;
     // cout << "8. Top 3 Series por nivel de audiencia" << endl;
-    // cout << "9. Mostrar Series" << endl;
+    cout << green << "9." << reset << " Mostrar Series" << endl;
+    cout << green << "10." << reset << " Salir" << endl;
 }
 
-void EliminarSerie(Series **listaSeries, string nombre){
+void MostrarListadoSeries(Series *listaSeries){
+  if(ListaSeriesVacia(listaSeries)){
+    cout << yellow << "La lista de series esta vacia!" << reset << endl;
+  }else{
+    Series *actual = listaSeries;
+    int contador = 1;
+    while(actual != nullptr){
+      cout << green << contador << ". " << reset << actual->nombre << endl;
+      actual = actual->prox;
+      contador++;
+    }
+  }
+
+  system("pause");
+}
+
+string NombreEliminarSeries() {
+    string nombre;
+    bool ciclo = true;
+
+    // Limpiar buffer una sola vez antes del bucle
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    while (ciclo) {
+        cout << "Ingrese el nombre de la serie que desea eliminar: ";
+        getline(cin, nombre);
+        if (nombre.size() > 2) { 
+            ciclo = false; // Salir del bucle si la longitud es válida
+        } else {
+            cout << red << "El nombre debe tener más de 2 caracteres. Intente nuevamente." << reset << endl;
+        }
+    }
+    return nombre;
+}
+
+void EliminarSerie(Series **listaSeries){
+  system("cls");
+  cout << "=======================================" << endl;
+  cout << green << "Eliminar Serie con todos sus episodios" << reset << endl;
+  cout << "=======================================" << endl;
+
   if(ListaSeriesVacia(*listaSeries)){
     cout << red << "No existen series para eliminar" << reset << endl;
   }else{
     Series *aux = *listaSeries, *anterior = nullptr;
-    
+    string nombre;
+
+    cout << green << "Lista de series disponibles para eliminar: " << reset << endl;
+    MostrarListadoSeries(*listaSeries);
+    nombre = NombreEliminarSeries();
 
     while(aux != nullptr && aux->nombre != nombre){
       anterior = aux;
@@ -107,8 +150,8 @@ void EliminarSerie(Series **listaSeries, string nombre){
     }
 
     
+    cout << green << "La serie " << reset << aux->nombre << green << " se ha eliminado correctamente" << reset << endl;
     delete aux;
-    cout << green << "La serie se ha eliminado correctamente" << reset << endl;
     system("pause");
   }
 }
@@ -183,31 +226,125 @@ int NumeroEpisodios() {
   return nEpisodios;
 }
 
-Episodios *LlenarEpisodios(Episodios **listasEpisodios){
-    int cantidad, duracion, numeroEpisodios;
-    string titulo;
-    cout << "Ingrese la cantidad de episodios que desea agregar: ";
-    cin >> cantidad;
+int NumeroEpisodiosEliminar() {
+  int nEpisodios;
+  bool ciclo = true;
 
-    for(int i = 0; i != cantidad; i++){
-        titulo = tituloEpisodios();
-        duracion = Duracion();
-        numeroEpisodios = NumeroEpisodios();
+  while (ciclo) {
+    cout << "Ingresa el numero del episodio que desea eliminar: ";
+    cin >> nEpisodios;
 
-        AgregarEpisodios(listasEpisodios, titulo, duracion, numeroEpisodios);
-        cout << green << "Episodio agregado con exito!" << reset << endl;
+    if (nEpisodios) { // Verifica si la entrada es válida (un número entero)
+      if (nEpisodios > 0) {
+        ciclo = false; // Salir del bucle si el número es positivo
+      } else {
+        cout << red << "El numero de episodio debe ser un número mayor a 0. Intente nuevamente." << reset << endl;
+      }
+    } else {
+      // Si la entrada no es válida, limpiar el buffer y mostrar mensaje
+      cout << red << "Entrada invalida. Por favor, ingrese un numero entero positivo." << reset << endl;
+      cin.clear(); // Limpiar el estado de error
+      cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Descartar entrada incorrecta
     }
+  }
+
+  return nEpisodios;
+}
+
+bool EpisodioExiste(Episodios *listaEpisodios, int numeroEpisodio){
+  if(ListaEpisodiosVacio(listaEpisodios)){
+    return false;
+  }else{
+    bool encontrado = false;
+    Episodios *actual = listaEpisodios;
+
+    while(actual != nullptr){
+      if(actual->numeroEpisodios == numeroEpisodio){
+        encontrado = true;
+      }
+      actual = actual->prox;
+    }
+
+    return encontrado;
+  }
+}
+
+int NumeroEpisodioNoExistente(Episodios *listaEpisodios, int nEpisodio){
+  if(ListaEpisodiosVacio(listaEpisodios)){
+    return nEpisodio;
+  }else{
+    int numeroEpisodios = nEpisodio;
+    bool ciclo = true;
     
-    if(cantidad == 0){
-      cout << yellow << "Despues puede agregar episodios a sus series si asi lo desea!" << reset << endl;
-      return nullptr;
-    }else{
-      return *listasEpisodios;
+    while(ciclo){
+      if(EpisodioExiste(listaEpisodios, numeroEpisodios)){
+        cout << yellow << "El episodio" << reset << " #" << numeroEpisodios << yellow << ", ya existe dentro de la serie, intente nuevamente." << reset << endl;
+      }else{
+        ciclo = false;
+        return numeroEpisodios;
+      }
+      numeroEpisodios = NumeroEpisodios();
     }
+
+    return numeroEpisodios;
+  }
+}
+
+Episodios *LlenarEpisodios(Episodios **listasEpisodios){
+  int cantidad, duracion, numeroEpisodios, episodioExistente;
+  string titulo;
+  cout << "Ingrese la cantidad de episodios que desea agregar: ";
+  cin >> cantidad;
+
+  for(int i = 0; i != cantidad; i++){
+    system("cls");
+    cout << "===============" << endl;
+    cout << green << "Agregar Serie" << reset << endl;
+    cout << "===============" << endl;
+    cout << green << "Cantidad episodios agregador: " << reset << i;
+    cout << endl << endl;
+    
+    titulo = tituloEpisodios();
+    duracion = Duracion();
+    cout << "Ingrese el numero del episodio: ";
+    cin >> episodioExistente;
+
+    numeroEpisodios = NumeroEpisodioNoExistente(*listasEpisodios, episodioExistente);
+    
+    AgregarEpisodios(listasEpisodios, titulo, duracion, numeroEpisodios);
+    cout << green << "Episodio agregado con exito!" << reset << endl;
+    system("pause");
+  }
+  
+  if(cantidad == 0){
+    cout << yellow << "Despues puede agregar episodios a sus series si asi lo desea!" << reset << endl;
+    return nullptr;
+  }else{
+    return *listasEpisodios;
+  }
 }
 
 
 string NombreSeries() {
+  string nombre;
+  bool ciclo = true;
+
+  // Limpiar buffer una sola vez antes del bucle
+  cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+  while (ciclo) {
+    cout << "Ingrese el nombre de la serie: ";
+    getline(cin, nombre);
+    if (nombre.size() > 2) { 
+      ciclo = false; // Salir del bucle si la longitud es válida
+    } else {
+      cout << red << "El nombre debe tener más de 2 caracteres. Intente nuevamente." << reset << endl;
+    }
+  }
+  return nombre;
+}
+
+string NombreEliminarEpisodios() {
     string nombre;
     bool ciclo = true;
 
@@ -215,13 +352,13 @@ string NombreSeries() {
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     while (ciclo) {
-        cout << "Ingrese el nombre de la serie: ";
-        getline(cin, nombre);
-        if (nombre.size() > 2) { 
-            ciclo = false; // Salir del bucle si la longitud es válida
-        } else {
-            cout << red << "El nombre debe tener más de 2 caracteres. Intente nuevamente." << reset << endl;
-        }
+      cout << "Ingrese el nombre de la serie para eliminar su episodio: ";
+      getline(cin, nombre);
+      if (nombre.size() > 2) { 
+        ciclo = false; // Salir del bucle si la longitud es válida
+      } else {
+        cout << red << "El nombre debe tener más de 2 caracteres. Intente nuevamente." << reset << endl;
+      }
     }
     return nombre;
 }
@@ -254,24 +391,24 @@ int NivelAudiencia() {
 string GeneroSeries(){
     string genero;
     bool ciclo = true;
-
-    // Limpiar buffer una sola vez antes del bucle
-    // cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
     while (ciclo) {
-        cout << "Ingrese el genero de la serie: ";
-        getline(cin, genero);
-        if (genero.size() > 2) { 
-            ciclo = false; // Salir del bucle si la longitud es válida
-        } else {
-            cout << red << "El genero debe tener más de 2 caracteres. Intente nuevamente." << reset << endl;
-        }
+      cout << "Ingrese el genero de la serie: ";
+      getline(cin, genero);
+      if (genero.size() > 2) { 
+        ciclo = false; // Salir del bucle si la longitud es válida
+      } else {
+        cout << red << "El genero debe tener más de 2 caracteres. Intente nuevamente." << reset << endl;
+      }
     }
     return genero;
 }
 
 void LlenarListaSeries(Series **listaSeries, Episodios *listaEpisodios){
   // Variables de las series
+  system("cls");
+  cout << "===============" << endl;
+  cout << green << "Agregar Serie" << reset << endl;
+  cout << "===============" << endl;
   string nombre, genero;
   int nivelAudi, opcion;
   bool agregarEpisodio = true;
@@ -300,6 +437,7 @@ void LlenarListaSeries(Series **listaSeries, Episodios *listaEpisodios){
   
   AgregarSeries(listaSeries, nombre, genero, nivelAudi, episodios);
   cout << green << "Serie agregada con exito" << reset << endl << endl;
+  system("pause");
 }
 
 int OpcionElegidaM(){
@@ -341,9 +479,9 @@ int NumeroEpisodios(Episodios *listaEpisodios){
   }
 }
 
-void MostrarSeries(Series *listaSeries){
+void MostrarSeriesYEpisodios(Series *listaSeries){
   if(ListaSeriesVacia(listaSeries)){
-    cout << "La lista de series esta vacia!" << endl;
+    cout << yellow << "La lista de series esta vacia!" << reset << endl;
   }else{
     Series *actual = listaSeries;
     int contador = 1;
@@ -360,9 +498,9 @@ void MostrarSeries(Series *listaSeries){
       contador++;
       actual = actual->prox;
     }
-
-    system("pause");
   }
+
+  system("pause");
 }
 
 void EliminarEpisodioSerie(Series **listaSeries){
@@ -372,81 +510,147 @@ void EliminarEpisodioSerie(Series **listaSeries){
   }
   
   Series *actualSeries = *listaSeries, *moverEpisodios = *listaSeries;
+  bool hayEpisodios = false;
   
   while(moverEpisodios != nullptr){
-    if(ListaEpisodiosVacio(moverEpisodios->listaEpisodios)){
-      cout << red << "No existen episodios para eliminar en la serie: " << reset << moverEpisodios->nombre << endl;
+    if(!ListaEpisodiosVacio(moverEpisodios->listaEpisodios)){
+      hayEpisodios = true;
     }
     moverEpisodios = moverEpisodios->prox;
   }
-
+  if(!hayEpisodios){
+    cout << red << "No existen episodios para eliminar en ninguna serie!" << reset << endl;
+    return;
+  }
+  
+  moverEpisodios = *listaSeries;
   string nombreSerie;
   Episodios *actualEpisodios = nullptr, *anteriorEpisodios = nullptr;
 
-  nombreSerie = NombreSeries();
+  cout << green << "Lista de series con episodios: " << reset << endl;
+
+  for(int i = 1; moverEpisodios != nullptr; i++){
+    if(!ListaEpisodiosVacio(moverEpisodios->listaEpisodios)){
+      cout << green << i << ". " << reset << moverEpisodios->nombre << endl;
+    }
+    moverEpisodios = moverEpisodios->prox;
+  }
+  
+  cout << endl;
+  nombreSerie = NombreEliminarEpisodios();
 
   while(actualSeries != nullptr && actualSeries->nombre != nombreSerie){
     actualSeries = actualSeries->prox;
   }
 
-    actualEpisodios = actualSeries->listaEpisodios;
+  actualEpisodios = actualSeries->listaEpisodios;
 
   if(actualSeries == nullptr){
     cout << red << "No se encontro serie para eliminar episodios!" << reset << endl;
     return;
-    }else{
-      int numeroEpisodio = NumeroEpisodios();
-      while(actualEpisodios != nullptr && actualEpisodios->numeroEpisodios != numeroEpisodio){
-        anteriorEpisodios = actualEpisodios;
-        actualEpisodios = actualEpisodios->prox;
-      }
+  }else{
+    cout << green << "Lista de episodios de la serie " << actualSeries->nombre << ":" << reset << endl;
+    MostrarEpisodios(actualSeries->listaEpisodios);
+    int numeroEpisodio = NumeroEpisodiosEliminar();
 
-      if(actualEpisodios == nullptr){
-        cout << red << "No se encontro el episodio para eliminar!" << reset << endl;
-        return;
+    while(actualEpisodios != nullptr && actualEpisodios->numeroEpisodios != numeroEpisodio){
+      anteriorEpisodios = actualEpisodios;
+      actualEpisodios = actualEpisodios->prox;
+    }
+
+    if(actualEpisodios == nullptr){
+      cout << red << "No se encontro el episodio para eliminar!" << reset << endl;
+      return;
+    }else{
+      if(anteriorEpisodios == nullptr){
+        actualSeries->listaEpisodios = actualEpisodios->prox;
       }else{
-        if(anteriorEpisodios == nullptr){
-          actualSeries->listaEpisodios = actualEpisodios->prox;
-        }else{
-          anteriorEpisodios->prox = actualEpisodios->prox;
-        }
-        delete actualEpisodios;
-        cout << green << "El episodio se ha eliminado correctamente" << reset << endl;
-        system("pause");
+        anteriorEpisodios->prox = actualEpisodios->prox;
       }
+      cout << green << "El episodio" << reset << " #" << actualEpisodios->numeroEpisodios << green << " se ha eliminado correctamente de la serie " << reset << actualSeries->nombre << endl;
+      delete actualEpisodios;
+      system("pause");
     }
   }
+}
 
-  int main(){
-    Series *listaSeries = nullptr;
-    Episodios *listaEpisodios = nullptr;
-    bool EjecutandoPrograma = true;
-    int opcion;
-  string nombre;
+void BuscarSeriePorNombre(Series *listaSeries){
+  if(ListaSeriesVacia(listaSeries)){
+    cout << "No existen series para buscar!" << endl;
+  }else{
+    string nombreSerie = NombreSeries();
+    Series *actual = listaSeries;
+
+    while(actual != nullptr && actual->nombre != nombreSerie){
+      actual = actual->prox;
+    }
+
+    if(actual == nullptr){
+      cout << red << "No se encontro la serie!" << reset << endl;
+    }else{
+      int opcion, nEpisodios = NumeroEpisodios(actual->listaEpisodios);
+
+      cout << green << "Serie encontrada!" << reset << endl;
+      cout << green << "Nombre: " << reset << actual->nombre << endl;
+      cout << green << "Genero: " << reset << actual->genero << endl;
+      cout << green << "Nivel de audiencia: " << reset << actual->nivelAud << endl;
+      cout << green << "Episodios: " << reset << nEpisodios << endl;
+
+      cout << "\n" << yellow << "Desea mostrar los episodios de la serie?" << reset << endl << yellow << "1."<< reset << " Si" << yellow << "\n2." << reset << " No" << endl;
+      cout << yellow << "Opcion: " << reset;
+      cin >> opcion;
+
+      if(opcion != 2) MostrarEpisodios(actual->listaEpisodios);
+    }
+  }
+  system("pause");
+}
+
+int main(){
+  Series *listaSeries = nullptr;
+  Episodios *listaEpisodios = nullptr;
+  bool EjecutandoPrograma = true;
+  int opcion;
 
   while(EjecutandoPrograma){
+    system("cls");
     MenuPrincipal();
     opcion = OpcionElegidaM();
 
     switch (opcion)
     {
+      // Agregar series
       case 1:
         LlenarListaSeries(&listaSeries, listaEpisodios);
       break;
 
+      // Eliminar series con todos sus episodios
       case 2:
-        nombre = NombreSeries();
-        EliminarSerie(&listaSeries, nombre);
+        EliminarSerie(&listaSeries);
       break;
 
+      // Eliminar episodios de una serie concreta
       case 4:
         EliminarEpisodioSerie(&listaSeries);
       break;
 
-      case 11:
-        MostrarSeries(listaSeries);
+      // Mostrar listado de series y episodios de las series
+      case 5:
+        MostrarSeriesYEpisodios(listaSeries);
       break;
 
+      // Buscar una serie por su nombre
+      case 6:
+        BuscarSeriePorNombre(listaSeries);
+      break;
+
+      // Muestra unicamente el listado de las series por su nombre
+      case 9:
+        cout << green << "Listado de series:" << reset << endl;
+        MostrarListadoSeries(listaSeries);
+      break;
+
+      // Terminar con la ejecucion de la aplicacion
       case 10:
         cout << "Programa finalizado" << endl;
         EjecutandoPrograma = false;
@@ -455,6 +659,6 @@ void EliminarEpisodioSerie(Series **listaSeries){
       default:
         cout << red << "Opcion no valida" << reset << endl;
       break;
-    }
+    } 
   }
 }
